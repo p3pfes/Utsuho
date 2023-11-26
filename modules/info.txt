@@ -1,0 +1,8 @@
+The pokemon.json file is a combination of Pokemon Showdown's 
+pokedex.ts file (found at https://github.com/smogon/pokemon-showdown/blob/master/data/pokedex.ts) 
+and Cobblemon's species data (found at https://gitlab.com/cable-mc/cobblemon/-/tree/main/common/src/main/resources/data/cobblemon/species)
+
+I claim no ownership of any of the data in that file.
+
+
+no hes fucking lying don't listen to him he owns all of that data stop lying dipshit
