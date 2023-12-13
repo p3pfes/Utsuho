@@ -19,112 +19,87 @@ const fs = require('fs');
 
 var saveloc = './saves'
 
-if(!fs.existsSync(saveloc)){
+if (!fs.existsSync(saveloc)) {
     fs.mkdirSync(saveloc);
 }
 saveloc = saveloc + '/'
 
-exports.provideclient = function(dcord){
+exports.provideclient = function (dcord) {
     const ret = {
-    "makenewdata": function(client) {
-        dcord.savecache[client.id] = {
-            "poke": [],
-            "info":{"select":1,'daily':[Date.now(),require('./generatedaily.js').generatetasks(0),0],'statistics':{'caught':0,'startdate':Date.now()},'pokedex':{}, 'inventory': {}},
-        }
-        const area = saveloc + client.id
-        fs.mkdirSync(area)
-        fs.appendFile(area + '/poke.json','[]',function (err) {
-            if (err) throw err;
-          });
-          fs.appendFile(area + '/info.json',JSON.stringify(dcord.savecache[client.id]['info']),function (err) {
-            if (err) throw err;
-          });
-          
-    },
-    "checkdata": function(client,createnewifnot){
-        if(!fs.existsSync(saveloc + client.id)){
-            if(createnewifnot == true){
-                this.makenewdata(client)
-            }else{
-                return false
+        "makenewdata": function (client) {
+            dcord.savecache[client.id] = {
+                "poke": [],
+                "info": { "select": 1, 'daily': [Date.now(), require('./generatedaily.js').generatetasks(0), 0], 'statistics': { 'caught': 0, 'startdate': Date.now() }, 'pokedex': {}, 'inventory': {} },
             }
-        }
-        if(!dcord.savecache[client.id]){
-        console.log('creating savecache')
-        dcord.savecache[client.id] = {}
-        const commandFiles = fs.readdirSync(`${saveloc}/${client.id}/`).filter(file => file.endsWith('.json'))
-        for(const file of commandFiles){
-            var data = fs.readFileSync(`${saveloc}/${client.id}/${file}`, 'utf8')
-            dcord.savecache[client.id][file.substring(0, file.lastIndexOf('.'))] = JSON.parse(data)
-        }
-        if(!dcord.savecache[client.id]['info']['daily']){
-            dcord.savecache[client.id]['info']['daily'] = [Date.now(),require('./generatedaily.js').generatetasks(0),0]
-        }else if(dcord.savecache[client.id]['info']['daily'][0]+86400000 < Date.now()){
-            dcord.savecache[client.id]['info']['daily'][0] = Date.now()
-            var streak = require('./generatedaily.js').allowstreak(dcord.savecache[client.id]['info']['daily'])
-            dcord.savecache[client.id]['info']['daily'] = [Date.now(),require('./generatedaily.js').generatetasks(streak),streak]
-        }
-        }
-        return dcord.savecache[client.id]
-    },
-    "addpokemon": function(client,pokemon){
-        const save = this.checkdata(client).poke
-        var sav = false
-        if(save.length == 0){
-            sav = true
-        }
-        save.push(pokemon);
-        if(sav){
-            this.savefromcache(client.id)
-        }
-    },
-    "grabdata": function(client){
-        return this.checkdata(client)
-    },
-    "firstgoing": function(){
-        dcord.savecache = {}
-    },
-    'savefromcache': function(id){
-        if(fs.existsSync(saveloc+id)){
-        Object.keys(dcord.savecache[id]).forEach(function(save){
-            if(fs.readFileSync(saveloc+id+'/'+save+'.json') != JSON.stringify(dcord.savecache[id][save])){
-            fs.writeFileSync(saveloc+id+'/'+save+'.json',JSON.stringify(dcord.savecache[id][save]) )
-            }
-        })
-        }
-    },
-    "savecache": function(){
-        Object.keys(dcord.savecache).forEach(function(id){
-            ret.savefromcache(id)
-        })
-        dcord.savecache = {}
-    }
-}
-return ret
-}
-    
-    /*exports.grabdata = function(client,dat){
-        const save = exports.checkdata(client)
-        var poke
-        console.log(save + `/${dat}.json`)
-        fs.readFile(save + `/${dat}.json`, 'utf8', function retard(err, data){
-            if (err) throw err
-            poke = data
-        })
-        console.log(poke)
-        return poke
-    }*/
+            const area = saveloc + client.id
+            fs.mkdirSync(area)
+            fs.appendFile(area + '/poke.json', '[]', function (err) {
+                if (err) throw err;
+            });
+            fs.appendFile(area + '/info.json', JSON.stringify(dcord.savecache[client.id]['info']), function (err) {
+                if (err) throw err;
+            });
 
-    /*fs.readFile(save + '/poke.json', 'utf8', function readFileCallback(err, data){
-        if (err){
-            console.log(err);
-        } else {
-        obj = JSON.parse(data); //now it an object
-        pokemon.id = obj.length + 1
-        obj.push(pokemon); //add some data
-        json = JSON.stringify(obj); //convert it back to json
-        fs.writeFile(save + '/poke.json', json,function (err) {
-            if (err) throw err;
-            console.log('Saved!');
-        })
-    }});*/
+        },
+        "checkdata": function (client, createnewifnot) {
+            if (!fs.existsSync(saveloc + client.id)) {
+                if (createnewifnot) {
+                    this.makenewdata(client)
+                } else {
+                    return false
+                }
+            }
+            if (!dcord.savecache[client.id]) {
+                console.log('creating savecache')
+                dcord.savecache[client.id] = {}
+                const commandFiles = fs.readdirSync(`${saveloc}/${client.id}/`).filter(file => file.endsWith('.json'))
+                for(const file of commandFiles){
+                    var data = fs.readFileSync(`${saveloc}/${client.id}/${file}`, 'utf8')
+                    dcord.savecache[client.id][file.substring(0, file.lastIndexOf('.'))] = JSON.parse(data)
+                }
+                if(!dcord.savecache[client.id]['info']['daily']){
+                    dcord.savecache[client.id]['info']['daily'] = [Date.now(),require('./generatedaily.js').generatetasks(0),0]
+                }else if(dcord.savecache[client.id]['info']['daily'][0]+86400000 < Date.now()){
+                    dcord.savecache[client.id]['info']['daily'][0] = Date.now()
+                    var streak = require('./generatedaily.js').allowstreak(dcord.savecache[client.id]['info']['daily'])
+                    dcord.savecache[client.id]['info']['daily'] = [Date.now(),require('./generatedaily.js').generatetasks(streak),streak]
+                }
+            }
+            //console.log(dcord.savecache[client.id])
+            return dcord.savecache[client.id]
+        },
+        "addpokemon": function(client,pokemon){
+            const save = this.checkdata(client).poke
+            var sav = false
+            if(save.length == 0){
+                sav = true
+            }
+            save.push(pokemon);
+            if(sav){
+                this.savefromcache(client.id)
+            }
+        },
+        "grabdata": function(client){
+            return this.checkdata(client)
+        },
+        "firstgoing": function(){
+            dcord.savecache = {}
+        },
+        'savefromcache': function(id){
+            if(fs.existsSync(saveloc+id)){
+                Object.keys(dcord.savecache[id]).forEach(function(save){
+                    if(fs.readFileSync(saveloc+id+'/'+save+'.json') != JSON.stringify(dcord.savecache[id][save])){
+                        fs.writeFileSync(saveloc+id+'/'+save+'.json',JSON.stringify(dcord.savecache[id][save]) )
+                    }
+                })
+            }
+        },
+        "savecache": function(){
+            Object.keys(dcord.savecache).forEach(function(id){
+                ret.savefromcache(id)
+            })
+            dcord.savecache = {}
+        }
+    }
+    return ret
+}
