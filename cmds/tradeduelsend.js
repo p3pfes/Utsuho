@@ -18,9 +18,9 @@
 
 const timeoutPromise = new Promise((resolve, reject) => {
     setTimeout(() => {
-      reject('Timed out');
+        reject('Timed out');
     }, 20000);
-  }).catch(error => console.error(error));
+}).catch(error => console.error(error));
 
 const { ButtonStyle, ActionRowBuilder, ButtonBuilder } = require('discord.js');
 
@@ -28,48 +28,60 @@ var pokeutil = require('../functions/pokeutil.js')
 module.exports = {
     name: ['trade'/*,'duel'*/],
     description: 'h',
-    datarequired:true,
+    datarequired: true,
     nodm: true,
-    async execute(message,args,client){
-        if(!args[0]){
+    async execute(message, args, client) {
+        if (!args[0]) {
             message.channel.send('You must specify a user!')
             return
         }
-        var user = args[0].slice(2).slice(0,-1)
-        console.log(user)
-        if(client.events[message.channel.id]){
+
+        var user = args[0].slice(2).slice(0, -1)
+
+
+        if (client.events[message.channel.id]) {
             message.channel.send('There is already an outgoing trade or battle request in this channel!')
             return
         }
-        const member = await Promise.race([message.guild.members.fetch({ user: user}), timeoutPromise]);
-        if(!message.channel.permissionsFor(member).has("1024")){
-            message.channel.send('User must be able to see this channel!')
+        let member;
+        try {
+            member = await Promise.race([message.guild.members.fetch({ user: user }), timeoutPromise]);
+        } catch {
+            message.channel.send("User does not exist.")
             return
         }
-        const accept = new ButtonBuilder()
-            .setCustomId('accepttb')
-            .setLabel('Accept')
-            .setStyle(ButtonStyle.Success)
-        const deny = new ButtonBuilder()
-            .setCustomId('denytb')
-            .setLabel('Deny')
-            .setStyle(ButtonStyle.Danger)
-        const row = new ActionRowBuilder().addComponents(accept,deny);
-        switch (message.content.split(/ +/)[0]){
-            case `th!trade`:
-                var msg = message.channel.send({content:`<@${member.user.id}>! <@${message.author.id}> has invited you to a trade!`,components:[row]})
-                client.events[message.channel.id] = ['traderequest',Date.now()/1000,message.author,member.user]
-                break
-            case `th!duel`:
-                var msg = message.channel.send({content:`<@${member.user.id}>! <@${message.author.id}> has challenged you to a duel!`,components:[row]})
-                client.events[message.channel.id] = ['battlerequest',Date.now()/1000,message.author,member.user]
-                break
+        if (member) {
+            if (!message.channel.permissionsFor(member).has("1024")) {
+                message.channel.send('User must be able to see this channel!')
+                return
+            }
+            const accept = new ButtonBuilder()
+                .setCustomId('accepttb')
+                .setLabel('Accept')
+                .setStyle(ButtonStyle.Success)
+            const deny = new ButtonBuilder()
+                .setCustomId('denytb')
+                .setLabel('Deny')
+                .setStyle(ButtonStyle.Danger)
+            const row = new ActionRowBuilder().addComponents(accept, deny);
+            switch (message.content.split(/ +/)[0]) {
+                case `th!trade`:
+                    var msg = message.channel.send({ content: `<@${member.user.id}>! <@${message.author.id}> has invited you to a trade!`, components: [row] })
+                    client.events[message.channel.id] = ['traderequest', Date.now() / 1000, message.author, member.user]
+                    break
+                case `th!duel`:
+                    var msg = message.channel.send({ content: `<@${member.user.id}>! <@${message.author.id}> has challenged you to a duel!`, components: [row] })
+                    client.events[message.channel.id] = ['battlerequest', Date.now() / 1000, message.author, member.user]
+                    break
+            }
+
+            /*}catch(error){
+                message.channel.send(`Invalid user, or user is not in this server!\n\nError: ${error}`)        
+                delete client.events[message.channel.id]
+            }*/
+
+        } else {
+            message.channel.send("User does not exist.")
         }
-        
-        /*}catch(error){
-            message.channel.send(`Invalid user, or user is not in this server!\n\nError: ${error}`)        
-            delete client.events[message.channel.id]
-        }*/
-        
     }
 }
