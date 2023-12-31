@@ -40,12 +40,14 @@ module.exports = {
             client.events[interaction.channel.id][0] = 'trade'
             client.events[interaction.channel.id][1] = pokeutil.gettime()
             client.events[interaction.channel.id].push(member.user.username,interaction.user.username,false,false,{'credits':0,'redeems':0,'poke':[]},{'credits':0,'redeems':0,'poke':[]},0)
-            client.events[interaction.channel.id].push(await interaction.reply({components: [row],embeds: [{
-                color: 0x3CBF46,
+            client.events[interaction.channel.id].push(interaction.reply({components: [row],embeds: [{
+                color: 0xeb0707 ,
                 title: `Trade between ${member.user.username} and ${interaction.user.username}`,
-                description: `<@${member.user.id}> is offering | ❌\n${'` `'}\n<@${interaction.user.id}> is offering | ❌\n${'` `'}`,
+                description: `List of trade commands: \nth!offer \nth!remove`,
+                footer: {
+                    text: "Do `th!help trade` for more info"
+                }
             }]}))
-            
             }catch(error){
                 interaction.reply(`Error! ${error}`)
                 delete client.events[interaction.channel.id]
