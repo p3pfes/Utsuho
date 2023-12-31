@@ -1,5 +1,5 @@
 /*
-    Meloetta - A Discord bot to play Character
+    Meloetta - A Discord bot to play Pokemon
     Copyright (C) 2021-2023  Hera
 
     This program is free software: you can redistribute it and/or modify
@@ -28,8 +28,9 @@ module.exports = {
                     embeds: [{
                         color: 0xeb0707,
                         title: "Utsuho Trade Commands Help",
-                        description: "**\nth!ready \nth!remove [c, credits, credit, r, redeem, redeems, t, touhou, th] \nth!offer [c, credits, credit, r, redeems, redeem, t, touhou, th] \nth!cancel **"
-                    }]
+                        description: "**\nth!ready \nth!remove [c, credits, credit, r, redeem, redeems, t, touhou, th]  \nth!offer [c, credits, credit, r, redeems, redeem, t, touhou, th] \nth!cancel **",
+                        footer: {text:"If you are offering/removing a character, mention the character ID afterwards. If you are offering/removing credits/redeems, mention the amount to offer/remove afterwards"}
+                        }]
                 })
                 return
             case "touhou":
