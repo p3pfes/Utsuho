@@ -29,7 +29,7 @@ function grabpokemonnames(data,list){
     }
     return str
 }
-const { ButtonStyle, ActionRowBuilder, ButtonBuilder } = require('discord.js');
+const { ButtonStyle, ActionRowBuilder, ButtonBuilder, SlashCommandSubcommandBuilder } = require('discord.js');
 const ready = new ButtonBuilder()
             .setCustomId('readytrade')
             .setLabel('Ready')
@@ -39,6 +39,7 @@ const cancel = new ButtonBuilder()
             .setLabel('Cancel')
             .setStyle(ButtonStyle.Danger)
 const row = new ActionRowBuilder().addComponents(ready,cancel);
+
 const timeoutPromise = new Promise((resolve, reject) => {
     setTimeout(() => {
       reject('Timed out');
@@ -53,7 +54,7 @@ module.exports = {
     nodm: true,
     grabmessage(info,onedata,twodata){
         return {embeds: [{
-            color: 0x3CBF46,
+            color: 0xeb0707,
             title: `Trade between ${info[4]} and ${info[5]}`,
             description: 
             `<@${info[2].id}> is offering | ${info[6] && '✅' || '❌'}
@@ -92,6 +93,9 @@ module.exports = {
         return 0
     },
     ready: async function(client,id,channel){
+        const data = require('../functions/data.js').provideclient(client)
+        var onedata = data.grabdata(client.events[channel.id][2])
+        var twodata = data.grabdata(client.events[channel.id][3])
         if(client.events[channel.id][6+id]){client.events[channel.id][6+id] = false}else{client.events[channel.id][6+id] = true}
         await this.updatemessage(client,channel)
         if(client.events[channel.id][6] && client.events[channel.id][7]){
@@ -109,11 +113,13 @@ module.exports = {
             var index = 0
             
             while(index < client.events[channel.id][9]['poke'].length){
+                console.log(client.events[channel.id][9].poke.length)
                 data.addpokemon(client.events[channel.id][2],pokeutil.removepokemon(twodata,client.events[channel.id][9]['poke'][index]))
                 index++
             }
             index = 0
             while(index < client.events[channel.id][8]['poke'].length){
+                
                 data.addpokemon(client.events[channel.id][3],pokeutil.removepokemon(onedata,client.events[channel.id][8]['poke'][index]))
                 index++
             }
@@ -136,69 +142,55 @@ module.exports = {
         }
         const casesplus = {
             'c': function(){
-                var total = pokeutil.credits(client,message.author,0)
+                var total = data.grabdata(message.author).info.credit
                 args.splice(0,1)
                 if(args[0] == 'all'){
-                    client.events[message.channel.id][8+id]['credits'] = total
-                    return 
+                    return client.events[message.channel.id][8+id]['credits'] = 0
                 }
-                var num = Math.floor(Number(args[0]))
-                if(num+client.events[message.channel.id][8+id]['credits'] > total){
+                if(Number(args[0])+client.events[message.channel.id][8+id]['credits'] > total){
                     message.channel.send("You can't put in more credits than you have!")
                     return
                 }
-                if(num < 0 || !Number.isFinite(num)){
+                if(Number(args[0]) < 0 || !Number.isFinite(Number(args[0]))){
                     message.channel.send('Invalid selection.')
                     return
                 }
                 client.events[message.channel.id][6] = false
                 client.events[message.channel.id][7] = false
                 console.log('added credits')
-                client.events[message.channel.id][8+id]['credits'] += num
+                client.events[message.channel.id][8+id]['credits'] += Number(args[0])
             },
             'r': function(){
-                var total = pokeutil.redeems(client,message.author,0)
+                var total = data.grabdata(message.author).info.redeem
                 args.splice(0,1)
                 if(args[0] == 'all'){
-                    client.events[message.channel.id][8+id]['redeems'] = total
-                    return 
+                    return client.events[message.channel.id][8+id]['redeems'] = 0
                 }
-                var num = Math.floor(Number(args[0]))
-                if(num+client.events[message.channel.id][8+id]['redeems'] > total){
+                if(Number(args[0])+client.events[message.channel.id][8+id]['redeems'] > total){
                     message.channel.send("You can't put in more redeems than you have!")
                     return
                 }
-                if(num < 0 || !Number.isFinite(num)){
+                if(Number(args[0]) < 0 || !Number.isFinite(Number(args[0]))){
                     message.channel.send('Invalid selection.')
                     return
                 }
                 client.events[message.channel.id][6] = false
                 client.events[message.channel.id][7] = false
                 console.log('added redeems')
-                client.events[message.channel.id][8+id]['redeems'] += num
+                client.events[message.channel.id][8+id]['redeems'] += Number(args[0])
             },
             't': function(){
                 args.splice(0,1)
                 var total = data.grabdata(message.author).poke
+        
                 var index = 0
-                var notifierlock = false
-                var notifierall = false
-                var notifierten = false
                 while(index < args.length){
-                    args[index] = Math.floor(Number(args[index]))
+                    args[index] = Number(args[index])
                     if(Number.isFinite(args[index]) && args[index] > 0){
                     var poke = pokeutil.findmonoffid(message.author,args[index],client)
                     args[index]--
                     if(poke && !client.events[message.channel.id][8+id]['poke'].includes(args[index])){
-                        if(poke.locked && message.author.id != info.debug){
-                            if(!notifierlock){message.reply('Locked characters cant be traded!'); notifierlock = true}
-                        }else if(client.events[message.channel.id][8+id]['poke'].length == total.length-1){
-                            if(!notifierall){message.reply("You cant trade all the characters you have!"); notifierall = true}
-                        }else if(client.events[message.channel.id][8+id]['poke'].length >= 10){
-                            if(!notifierten){message.reply("You cant trade more than 10 characters at once!"); notifierten = true}
-                        }else{
-                            client.events[message.channel.id][8+id]['poke'].push(args[index])
-                        }
+                        client.events[message.channel.id][8+id]['poke'].push(args[index])
                     }
                     }
                     index++
@@ -210,17 +202,17 @@ module.exports = {
         }
         const casesminus = {
             'c': function(){
+                var total = data.grabdata(message.author).info.credit
                 args.splice(0,1)
+                args[0] = Number(args[0])
                 if(args[0] == 'all'){
-                    client.events[message.channel.id][8+id]['credits'] = 0
-                    return 
+                    return client.events[message.channel.id][8+id]['credits'] = 0
                 }
-                var num = Math.floor(Number(args[0]))
-                if(num < 0 || !Number.isFinite(num)){
+                if(args[0] < 0 || !Number.isFinite(args[0])){
                     message.channel.send('Invalid selection.')
                     return
                 }
-                client.events[message.channel.id][8+id]['credits'] -= num
+                client.events[message.channel.id][8+id]['credits'] -= args[0]
                 if(client.events[message.channel.id][8+id]['credits'] < 0){
                     client.events[message.channel.id][8+id]['credits'] = 0
                 }
@@ -229,17 +221,17 @@ module.exports = {
                 console.log('removed credits')
             },
             'r': function(){
+                var total = data.grabdata(message.author).info.redeem
                 args.splice(0,1)
+                args[0] = Number(args[0])
                 if(args[0] == 'all'){
-                    client.events[message.channel.id][8+id]['redeems'] = 0
-                    return 
+                    return client.events[message.channel.id][8+id]['redeems'] = 0
                 }
-                var num = Math.floor(Number(args[0]))
-                if(num < 0 || !Number.isFinite(num)){
+                if(args[0] < 0 || !Number.isFinite(args[0])){
                     message.channel.send('Invalid selection.')
                     return
                 }
-                client.events[message.channel.id][8+id]['redeems'] -= num
+                client.events[message.channel.id][8+id]['redeems'] -= args[0]
                 if(client.events[message.channel.id][8+id]['redeems'] < 0){
                     client.events[message.channel.id][8+id]['redeems'] = 0
                 }
