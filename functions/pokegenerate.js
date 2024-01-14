@@ -72,7 +72,7 @@ exports.genmon = function (author, client, tab) {
         pok.mon = 'mausholdfour'
     }
     if (!pok.redeem && Math.floor(Math.random() * 500) == 1 && require('../chances.json').Worst[1].includes(pok.mon)) {
-        pok.mon = 'ditto'
+        pok.mon = 'nue'
     }
     if (gender != 'N') {
         pok.gender = gender
